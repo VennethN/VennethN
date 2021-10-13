@@ -4,7 +4,8 @@
 - 💞️ I’m looking to collaborate on open source projects.
 - 📫 How to reach me , email me on valentnathana@gmail.com
 
-My itch.io : venneth.itch.io
+My itch : venneth.itch.io
+My instagram: @venneth.n
 
 <!---
 VennethN/VennethN is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
