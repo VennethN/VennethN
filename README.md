@@ -6,6 +6,7 @@
 
 My itch : venneth.itch.io
 My instagram: @venneth.n
+I am currently not very active on github since i have been storing my projects on my local storage.
 
 <!---
 VennethN/VennethN is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
