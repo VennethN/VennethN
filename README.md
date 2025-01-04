@@ -1,8 +1,5 @@
-- 👋 Hello, my name's Valent, however you can also call me by my internet name, "Venneth".
-- 👀 I’m interested in programming, digital designing, video editing, and music producing.
-- 🌱 I’m currently learning C#, Python, C++, Javascript.
-- 💞️ I’m looking to collaborate on open source projects.
-- 📫 How to reach me , email me on valentnathana@gmail.com
+Hello I'm Valent, currently I'm a Full time game developer at CodeCombat and an Undergraduate student at BINUS University
+https://vennethn.github.io/Vennethia/
 
 My itch : venneth.itch.io
 My instagram: @venneth.n
