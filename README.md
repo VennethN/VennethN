@@ -1,4 +1,4 @@
-Hello I'm Valent, currently I'm a Full time game developer at CodeCombat and an Undergraduate student at BINUS University
+Hello I'm Valent, currently I'm a Full time software engineer at Gray Swan AI and an Undergraduate student at BINUS University
 https://vennethn.github.io/Vennethia/
 
 My itch : venneth.itch.io
