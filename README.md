@@ -1,3 +1,5 @@
+![Profile views](https://komarev.com/ghpvc/?username=VennethN&label=Profile%20views&color=0e75b6&style=flat)
+
 Hello I'm Valent, currently I'm a Full time software engineer at Gray Swan AI and an Undergraduate student at BINUS University
 https://vennethn.github.io/Vennethia/
 
