@@ -13,8 +13,8 @@ I'm currently a full-time software engineer at Gray Swan AI and an undergraduate
 - Contact: https://www.linkedin.com/in/valentnathanael/ (or via https://vennethn.github.io/Vennethia/contact)
 
 <p>
-  <img height="150" src="https://github-readme-stats.vercel.app/api?username=VennethN&show_icons=true&hide_title=true&hide_border=true" alt="GitHub stats for VennethN" />
-  <img height="150" src="https://github-readme-stats.vercel.app/api/top-langs/?username=VennethN&layout=compact&langs_count=6&hide_border=true" alt="Top languages for VennethN" />
+  <img height="150" src="https://github-readme-streak-stats.herokuapp.com/?user=VennethN&hide_border=true&background=00000000" alt="GitHub streak for VennethN" />
+  <img height="150" src="https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=VennethN&theme=transparent" alt="Top languages for VennethN" />
 </p>
 </details>
 
