@@ -1,6 +1,7 @@
 ![Profile views](https://komarev.com/ghpvc/?username=VennethN&label=Profile%20views&color=0e75b6&style=flat)
 
-Hi, I’m Valent, a full-time software engineer at Gray Swan AI and an undergraduate student at BINUS University.
+Hello! I’m Valent, but the internet knows me more as Venneth.
+I'm currently a full-time software engineer at Gray Swan AI and an undergraduate student at BINUS University.
 
 - Portfolio: https://vennethn.github.io/Vennethia/
 
@@ -10,6 +11,11 @@ Hi, I’m Valent, a full-time software engineer at Gray Swan AI and an undergrad
 - Currently: Software Engineer @ Gray Swan AI; CS undergrad @ BINUS.
 - Interests: Red teaming, game development, photography/digital art.
 - Contact: https://www.linkedin.com/in/valentnathanael/ (or via https://vennethn.github.io/Vennethia/contact)
+
+<p>
+  <img height="150" src="https://github-readme-stats.vercel.app/api?username=VennethN&show_icons=true&hide_title=true&hide_border=true" alt="GitHub stats for VennethN" />
+  <img height="150" src="https://github-readme-stats.vercel.app/api/top-langs/?username=VennethN&layout=compact&langs_count=6&hide_border=true" alt="Top languages for VennethN" />
+</p>
 </details>
 
 <!---
