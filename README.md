@@ -6,7 +6,7 @@
   <tr>
     <td rowspan="3" width="200">
       <b>Venneth</b><br/>
-      <sub>software engineer & game dev</sub>
+      <sub>Software Engineer</sub>
     </td>
     <td>
       <a href="https://www.linkedin.com/in/valentnathanael/">
@@ -44,13 +44,6 @@ I'm currently a full-time software engineer at Gray Swan AI and an undergraduate
 - Currently: Software Engineer @ Gray Swan AI; CS undergrad @ BINUS.
 - Interests: Red teaming, game development, photography/digital art.
 
-<p>
-  <img src="https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=VennethN&theme=transparent" alt="Contribution graph for VennethN" />
-</p>
-<p>
-  <img height="150" src="https://github-profile-summary-cards.vercel.app/api/cards/stats?username=VennethN&theme=transparent" alt="GitHub stats for VennethN" />
-  <img height="150" src="https://github-profile-summary-cards.vercel.app/api/cards/productive-time?username=VennethN&theme=transparent&utcOffset=7" alt="Commit activity by time of day for VennethN" />
-</p>
 </details>
 
 <!---
