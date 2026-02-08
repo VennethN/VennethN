@@ -1,6 +1,6 @@
 ![Profile views](https://komarev.com/ghpvc/?username=VennethN&label=Profile%20views&color=0e75b6&style=flat)
 
-Hi, I’m Valent — a full-time software engineer at Gray Swan AI and an undergraduate student at BINUS University.
+Hi, I’m Valent, a full-time software engineer at Gray Swan AI and an undergraduate student at BINUS University.
 
 - Portfolio: https://vennethn.github.io/Vennethia/
 
