@@ -36,7 +36,7 @@
 </div>
 
 Hello! I'm Valent, but the internet knows me more as Venneth.
-I'm currently a full-time software engineer at Gray Swan AI and an undergraduate student at BINUS University.
+I'm currently a full-time software engineer at Gray Swan and an undergraduate student at BINUS University.
 https://vennethn.github.io/Vennethia/
 
 <details>
