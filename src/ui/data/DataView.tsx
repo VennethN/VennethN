@@ -20,7 +20,13 @@ export function DataView() {
   const [anchor, setAnchor] = useState<Pos | null>(null)
   const [editing, setEditing] = useState<{ pos: Pos; text: string } | null>(null)
   const [menu, setMenu] = useState<{ x: number; y: number; items: (MenuEntry | 'sep')[] } | null>(null)
-  const editRef = useRef<HTMLInputElement>(null)
+  // Mirror of `editing` that event handlers can read and clear synchronously (avoids double commits
+  // when focus moves back to the grid and the editor fires its blur event).
+  const editingRef = useRef<{ pos: Pos; text: string } | null>(null)
+  const setEdit = useCallback((e: { pos: Pos; text: string } | null) => {
+    editingRef.current = e
+    setEditing(e)
+  }, [])
 
   const nVars = ds.variables.length
   const colWidths = useMemo(() => ds.variables.map(colWidthPx), [ds.variables])
@@ -64,23 +70,20 @@ export function DataView() {
     }
   }, [focusVarId, ds.variables])
 
-  useEffect(() => {
-    if (editing) editRef.current?.focus()
-  }, [editing])
-
   const startEdit = useCallback(
     (pos: Pos, initial?: string) => {
       const v = ds.variables[pos.col]
       const text = initial ?? (v && pos.row < ds.nCases ? rawText(v, ds.data[v.id][pos.row]) : '')
-      setEditing({ pos, text })
+      setEdit({ pos, text })
     },
-    [ds],
+    [ds, setEdit],
   )
 
   const commitEdit = useCallback(
     (move: 'down' | 'right' | 'left' | 'up' | 'none') => {
-      if (!editing) return true
-      const { pos, text } = editing
+      const cur = editingRef.current
+      if (!cur) return true
+      const { pos, text } = cur
       const v = ds.variables[pos.col]
       if (v && v.type === 'numeric') {
         const p = parseCellInput(v, text)
@@ -89,6 +92,9 @@ export function DataView() {
           return false
         }
       }
+      // Leave edit mode first and move focus to the grid synchronously so no keystroke is lost.
+      editingRef.current = null
+      if (move !== 'none') gridRef.current?.focus()
       const unchanged = v && pos.row < ds.nCases && rawText(v, ds.data[v.id][pos.row]) === text
       if (!unchanged && !(text === '' && (!v || pos.row >= ds.nCases))) {
         const r = writeBlock(ds, pos, [[text]])
@@ -98,10 +104,9 @@ export function DataView() {
       const d = { down: [1, 0], up: [-1, 0], right: [0, 1], left: [0, -1], none: [0, 0] }[move]
       setActive({ row: Math.max(0, pos.row + d[0]), col: Math.max(0, pos.col + d[1]) })
       setAnchor(null)
-      setTimeout(() => gridRef.current?.focus(), 0)
       return true
     },
-    [editing, ds, commit, notify],
+    [ds, commit, notify],
   )
 
   const selectionText = useCallback(() => {
@@ -145,7 +150,7 @@ export function DataView() {
   }
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    if (editing) return
+    if (editingRef.current) return
     const page = gridRef.current?.pageRows() ?? 20
     const mod = e.ctrlKey || e.metaKey
     switch (e.key) {
@@ -322,7 +327,7 @@ export function DataView() {
         title={`${v.name}${v.label ? ` — ${v.label}` : ''}`}
         onMouseDown={(e) => {
           if (e.button !== 0) return
-          if (editing && !commitEdit('none')) return
+          if (editingRef.current && !commitEdit('none')) return
           setAnchor({ row: 0, col: e.shiftKey && anchor ? anchor.col : col })
           setActive({ row: Math.max(0, ds.nCases - 1), col })
           gridRef.current?.focus()
@@ -349,7 +354,7 @@ export function DataView() {
         style={style}
         onMouseDown={(e) => {
           if (e.button !== 0) return
-          if (editing && !commitEdit('none')) return
+          if (editingRef.current && !commitEdit('none')) return
           setAnchor({ row: e.shiftKey && anchor ? anchor.row : row, col: 0 })
           setActive({ row, col: Math.max(0, nVars - 1) })
           gridRef.current?.focus()
@@ -384,7 +389,7 @@ export function DataView() {
         style={style}
         onMouseDown={(e) => {
           if (e.button !== 0) return
-          if (editing && !commitEdit('none')) return
+          if (editingRef.current && !commitEdit('none')) return
           if (e.shiftKey) {
             if (!anchor) setAnchor(active)
           } else setAnchor(null)
@@ -419,15 +424,28 @@ export function DataView() {
     return (
       <>
         <input
-          ref={editRef}
+          ref={(el) => {
+            // focus during commit so the next keystroke already lands in the editor
+            if (el && document.activeElement !== el) {
+              el.focus()
+              el.setSelectionRange(el.value.length, el.value.length)
+            }
+          }}
           className="gedit"
           aria-label="Cell editor"
           list={options ? 'cell-labels' : undefined}
           style={{ left: r.left, top: r.top, width: Math.max(r.width, 90), height: r.height, textAlign: v?.type === 'numeric' ? 'right' : 'left' }}
           value={editing.text}
-          onChange={(e) => setEditing({ ...editing, text: e.target.value })}
-          onBlur={() => commitEdit('none')}
+          onChange={(e) => editing && setEdit({ ...editing, text: e.target.value })}
+          onBlur={() => {
+            if (editingRef.current) commitEdit('none')
+          }}
+          onCopy={(e) => e.stopPropagation()}
+          onCut={(e) => e.stopPropagation()}
+          onPaste={(e) => e.stopPropagation()}
           onKeyDown={(e) => {
+            // the editor lives inside the grid: keep its keys from also reaching the grid's handler
+            e.stopPropagation()
             if (e.key === 'Enter') {
               e.preventDefault()
               commitEdit(e.shiftKey ? 'up' : 'down')
@@ -436,8 +454,9 @@ export function DataView() {
               commitEdit(e.shiftKey ? 'left' : 'right')
             } else if (e.key === 'Escape') {
               e.preventDefault()
-              setEditing(null)
+              editingRef.current = null
               gridRef.current?.focus()
+              setEditing(null)
             } else if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !options) {
               e.preventDefault()
               commitEdit(e.key === 'ArrowDown' ? 'down' : 'up')
@@ -481,18 +500,18 @@ export function DataView() {
         overlay={overlay}
         onKeyDown={onKeyDown}
         onCopy={(e) => {
-          if (editing) return
+          if (editingRef.current) return
           e.preventDefault()
           e.clipboardData.setData('text/plain', selectionText())
         }}
         onCut={(e) => {
-          if (editing) return
+          if (editingRef.current) return
           e.preventDefault()
           e.clipboardData.setData('text/plain', selectionText())
           clearSelection()
         }}
         onPaste={(e) => {
-          if (editing) return
+          if (editingRef.current) return
           e.preventDefault()
           paste(e.clipboardData.getData('text/plain'))
         }}

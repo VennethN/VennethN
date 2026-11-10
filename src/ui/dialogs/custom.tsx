@@ -84,11 +84,12 @@ function useDialogActions() {
 
 /** Calculator keypad used by Compute and If… */
 function Keypad({ onKey }: { onKey: (s: string) => void }) {
-  const keys = ['+', '<', '>', '7', '8', '9', '-', '<=', '>=', '4', '5', '6', '*', '=', '~=', '1', '2', '3', '/', '&', '|', '0', '.', '(', '**', '~', ')']
+  // same arrangement as the SPSS calculator pad: operators on the left, digits on the right
+  const keys = ['+', '<', '>', '7', '8', '9', '-', '<=', '>=', '4', '5', '6', '*', '=', '~=', '1', '2', '3', '/', '&', '|', '0', '.', '( )', '**', '~']
   return (
     <div className="calc" aria-label="Calculator keypad">
       {keys.map((k) => (
-        <button key={k} type="button" onClick={() => onKey(k === '(' ? '( )' : k)} title={k}>
+        <button key={k} type="button" onClick={() => onKey(k)} title={k === '~' ? 'NOT' : k === '&' ? 'AND' : k === '|' ? 'OR' : k}>
           {k}
         </button>
       ))}

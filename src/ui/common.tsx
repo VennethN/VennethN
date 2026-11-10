@@ -179,7 +179,7 @@ export function Radio<T extends string>({
 }) {
   return (
     <label className={`radio ${disabled ? 'disabled' : ''}`}>
-      <input type="radio" name={name} checked={current === value} disabled={disabled} onChange={() => onChange(value)} />
+      <input type="radio" name={name} value={value} checked={current === value} disabled={disabled} onChange={() => onChange(value)} />
       <span>{label}</span>
     </label>
   )

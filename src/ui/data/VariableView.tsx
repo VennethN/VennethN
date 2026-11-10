@@ -76,13 +76,21 @@ export function VariableView() {
   const [active, setActive] = useState({ row: 0, col: 0 })
   const [editing, setEditing] = useState<{ row: number; col: number; text: string } | null>(null)
   const [menu, setMenu] = useState<{ x: number; y: number; items: (MenuEntry | 'sep')[] } | null>(null)
-  const inputRef = useRef<HTMLInputElement & HTMLSelectElement>(null)
+  const editingRef = useRef<{ row: number; col: number; text: string } | null>(null)
+  const setEdit = (e: { row: number; col: number; text: string } | null) => {
+    editingRef.current = e
+    setEditing(e)
+  }
+  /** Focus editors as soon as they mount so no keystroke is lost. */
+  const focusOnMount = (el: HTMLInputElement | HTMLSelectElement | null) => {
+    if (el && document.activeElement !== el) {
+      el.focus()
+      if (el instanceof HTMLInputElement) el.setSelectionRange(el.value.length, el.value.length)
+    }
+  }
   const nVars = ds.variables.length
 
   useEffect(() => gridRef.current?.ensureVisible(active.row, active.col), [active])
-  useEffect(() => {
-    if (editing) inputRef.current?.focus()
-  }, [editing])
   useEffect(() => {
     if (!focusVarId) return
     const idx = ds.variables.findIndex((v) => v.id === focusVarId)
@@ -122,7 +130,7 @@ export function VariableView() {
     const v = ds.variables[row]
     let text = initial ?? (v ? (c.kind === 'select' ? (v[c.key as 'align'] as string) : display(v, c.key)) : '')
     if (c.kind === 'select' && !v) text = c.key === 'align' ? 'right' : c.key === 'measure' ? 'scale' : 'input'
-    setEditing({ row, col, text })
+    setEdit({ row, col, text })
   }
 
   const apply = (row: number, key: ColKey, text: string): boolean => {
@@ -185,18 +193,20 @@ export function VariableView() {
     return true
   }
 
-  const commitEdit = (dr = 0, dc = 0) => {
-    if (!editing) return true
-    const ok = apply(editing.row, COLS[editing.col].key, editing.text)
+  const commitEdit = (dr = 0, dc = 0, refocus = true) => {
+    const cur = editingRef.current
+    if (!cur) return true
+    const ok = apply(cur.row, COLS[cur.col].key, cur.text)
     if (!ok) return false
+    editingRef.current = null
+    if (refocus) gridRef.current?.focus()
     setEditing(null)
-    setActive({ row: Math.max(0, editing.row + dr), col: Math.min(COLS.length - 1, Math.max(0, editing.col + dc)) })
-    setTimeout(() => gridRef.current?.focus(), 0)
+    setActive({ row: Math.max(0, cur.row + dr), col: Math.min(COLS.length - 1, Math.max(0, cur.col + dc)) })
     return true
   }
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    if (editing) return
+    if (editingRef.current) return
     const mv = (dr: number, dc: number) => {
       e.preventDefault()
       setActive((p) => ({ row: Math.max(0, p.row + dr), col: Math.min(COLS.length - 1, Math.max(0, p.col + dc)) }))
@@ -293,7 +303,7 @@ export function VariableView() {
         style={{ ...style, paddingRight: isActive && c.kind === 'dialog' ? 26 : undefined }}
         onMouseDown={(e) => {
           if (e.button !== 0) return
-          if (editing && !commitEdit()) return
+          if (editingRef.current && !commitEdit(0, 0, false)) return
           setActive({ row, col })
           gridRef.current?.focus()
         }}
@@ -333,7 +343,7 @@ export function VariableView() {
       const opts = c.key === 'align' ? ALIGN : c.key === 'measure' ? (v?.type === 'string' ? MEASURE.slice(1) : MEASURE) : ROLE
       return (
         <select
-          ref={inputRef}
+          ref={focusOnMount}
           className="vv-select"
           aria-label={c.label}
           style={style}
@@ -341,15 +351,20 @@ export function VariableView() {
           onChange={(e) => {
             const val = e.target.value
             if (apply(editing.row, c.key, val)) {
+              editingRef.current = null
+              gridRef.current?.focus()
               setEditing(null)
-              setTimeout(() => gridRef.current?.focus(), 0)
             }
           }}
-          onBlur={() => setEditing(null)}
+          onBlur={() => {
+            if (editingRef.current) setEdit(null)
+          }}
           onKeyDown={(e) => {
+            e.stopPropagation()
             if (e.key === 'Escape') {
-              setEditing(null)
+              editingRef.current = null
               gridRef.current?.focus()
+              setEditing(null)
             }
           }}
         >
@@ -364,16 +379,17 @@ export function VariableView() {
     {
       return (
         <input
-          ref={inputRef}
+          ref={focusOnMount}
           className="vv-input"
           aria-label={c.label}
           style={style}
           value={editing.text}
-          onChange={(e) => setEditing({ ...editing, text: e.target.value })}
+          onChange={(e) => editing && setEdit({ ...editing, text: e.target.value })}
           onBlur={() => {
-            if (!commitEdit()) setEditing(null)
+            if (editingRef.current && !commitEdit(0, 0, false)) setEdit(null)
           }}
           onKeyDown={(e) => {
+            e.stopPropagation()
             if (e.key === 'Enter') {
               e.preventDefault()
               commitEdit(1, 0)
@@ -381,8 +397,9 @@ export function VariableView() {
               e.preventDefault()
               commitEdit(0, e.shiftKey ? -1 : 1)
             } else if (e.key === 'Escape') {
-              setEditing(null)
+              editingRef.current = null
               gridRef.current?.focus()
+              setEditing(null)
             }
           }}
         />

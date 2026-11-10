@@ -1223,7 +1223,7 @@ select.input {
 }
 .calc {
   display: grid;
-  grid-template-columns: repeat(5, 34px);
+  grid-template-columns: repeat(6, 34px);
   gap: 4px;
 }
 .calc button {
