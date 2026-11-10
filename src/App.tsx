@@ -216,16 +216,11 @@ export default function App() {
     const onOver = (e: DragEvent) => {
       if (e.dataTransfer?.types.includes('Files')) e.preventDefault()
     }
-    const beforeUnload = (e: BeforeUnloadEvent) => {
-      if (useApp.getState().dirty) e.preventDefault()
-    }
     window.addEventListener('drop', onDrop)
     window.addEventListener('dragover', onOver)
-    window.addEventListener('beforeunload', beforeUnload)
     return () => {
       window.removeEventListener('drop', onDrop)
       window.removeEventListener('dragover', onOver)
-      window.removeEventListener('beforeunload', beforeUnload)
     }
   }, [])
 

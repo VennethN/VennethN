@@ -194,3 +194,36 @@ FREQUENCIES VARIABLES=gender.`,
     expect(Number(n2)).toBe(2 * ds.nCases)
   })
 })
+
+describe('stepwise selection', () => {
+  // y depends strongly on x1, weakly on x2; noise is pure noise
+  const n = 120
+  let seed = 3
+  const rnd = () => {
+    seed = (seed * 1103515245 + 12345) % 2147483648
+    return seed / 2147483648
+  }
+  const norm = () => Math.sqrt(-2 * Math.log(rnd() + 1e-12)) * Math.cos(2 * Math.PI * rnd())
+  const x1 = Array.from({ length: n }, norm)
+  const x2 = Array.from({ length: n }, norm)
+  const noise = Array.from({ length: n }, norm)
+  const y = x1.map((v, i) => 3 * v + 0.6 * x2[i] + norm())
+  const d = datasetFrom({ y, x1, x2, noise })
+  const entered = (method: string) => {
+    const r = runSyntax(d, `REGRESSION /DEPENDENT y /METHOD=${method} noise x2 x1.`)
+    expect(errorsIn(r.blocks)).toEqual([])
+    const coef = findTable(r.blocks, 'Coefficients')
+    const last = coef.rows[coef.rows.length - 1]
+    return (last.children ?? []).map((c) => c.label).filter((l) => l !== '(Constant)')
+  }
+  it('stepwise enters the strongest predictor first and leaves out noise', () => {
+    const r = runSyntax(d, 'REGRESSION /DEPENDENT y /METHOD=STEPWISE noise x2 x1.')
+    const ent = findTable(r.blocks, 'Variables Entered/Removed')
+    expect(rowValues(ent, '1')[0]).toBe('x1')
+    expect(entered('STEPWISE')).toEqual(['x1', 'x2'])
+  })
+  it('forward and backward agree on the final model', () => {
+    expect(entered('FORWARD').sort()).toEqual(['x1', 'x2'])
+    expect(entered('BACKWARD').sort()).toEqual(['x1', 'x2'])
+  })
+})

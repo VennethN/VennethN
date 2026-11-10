@@ -4,6 +4,9 @@
   "version": "0.1.0",
   "description": "A browser-based statistics package with an SPSS-style workflow: Data/Variable View, analysis dialogs, pivot-table output and command syntax.",
   "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

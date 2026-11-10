@@ -316,8 +316,14 @@ export function runSyntax(ds: Dataset, text: string): RunResult {
   const commands = splitCommands(text)
   const push = (b: OutputBlock) => {
     const last = blocks[blocks.length - 1]
-    if (b.title === 'Log' && last && last.title === 'Log') last.items.push(...b.items)
-    else blocks.push(b)
+    if (b.title === 'Log' && last && last.title === 'Log') {
+      for (const it of b.items) {
+        const tail = last.items[last.items.length - 1]
+        // consecutive commands share one log entry, as in the SPSS Viewer
+        if (it.kind === 'log' && tail?.kind === 'log') last.items[last.items.length - 1] = { ...tail, text: `${tail.text}\n${it.text}` }
+        else last.items.push(it)
+      }
+    } else blocks.push(b)
   }
   for (const raw of commands) {
     let specs: CommandSpec[]
