@@ -1,5 +1,5 @@
 import { isMissing, type Dataset, type Variable } from '../core/dataset'
-import { fmtCount, fmtNum, fmtPct, fmtSig } from '../core/format'
+import { fmtCount, fmtNum, fmtPct, fmtPctSign, fmtSig } from '../core/format'
 import { out, type OutputItem, type RowNode } from '../core/output'
 import { chi2Sf, hypergeomPmf, normInv } from '../stats/distributions'
 import { analysisCases, catKey, catLabel, categoriesOf, Notes, ProcError, resolveVars, vlabel } from './common'
@@ -179,11 +179,11 @@ export function runCrosstabs(ds: Dataset, spec: CrosstabsSpec): OutputItem[] {
           label: `${vlabel(r)} * ${vlabel(c)}`,
           cells: [
             fmtCount(x.n),
-            fmtPct(tot ? (100 * x.n) / tot : 0) + '%',
+            fmtPctSign(tot ? (100 * x.n) / tot : 0),
             fmtCount(x.missing),
-            fmtPct(tot ? (100 * x.missing) / tot : 0) + '%',
+            fmtPctSign(tot ? (100 * x.missing) / tot : 0),
             fmtCount(tot),
-            '100.0%',
+            fmtPctSign(100),
           ],
         }
       }),
@@ -217,13 +217,13 @@ export function runCrosstabs(ds: Dataset, spec: CrosstabsSpec): OutputItem[] {
               values.push(fmtNum(e, 1))
               break
             case 'row':
-              values.push(fmtPct(rt ? (100 * o) / rt : 0) + '%')
+              values.push(fmtPctSign(rt ? (100 * o) / rt : 0))
               break
             case 'column':
-              values.push(fmtPct(ct ? (100 * o) / ct : 0) + '%')
+              values.push(fmtPctSign(ct ? (100 * o) / ct : 0))
               break
             case 'total':
-              values.push(fmtPct((100 * o) / x.n) + '%')
+              values.push(fmtPctSign((100 * o) / x.n))
               break
             case 'resid':
               values.push(i === null || isTotCol ? '' : fmtNum(o - e, 1))

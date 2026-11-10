@@ -59,6 +59,12 @@ export function fmtPct(p: number | null | undefined): string {
   return fmtNum(p, 1)
 }
 
+/** Percent with a % sign as in Case Processing Summary tables ("0.0%", "95.5%"). */
+export function fmtPctSign(p: number | null | undefined): string {
+  if (p === null || p === undefined || Number.isNaN(p)) return '.'
+  return `${p.toFixed(1)}%`
+}
+
 export function fmtInt(n: number): string {
   return String(Math.round(n))
 }
@@ -85,7 +91,7 @@ export function formatCell(v: Variable, value: CellValue, showValueLabels = fals
     }
     return s
   }
-  if (value === null || typeof value !== 'number' || Number.isNaN(value)) return showValueLabels ? '' : '.'
+  if (value === null || typeof value !== 'number' || Number.isNaN(value)) return '.'
   if (showValueLabels) {
     const l = v.valueLabels.find((x) => Number(x.value) === value)
     if (l) return l.label

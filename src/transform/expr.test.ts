@@ -95,3 +95,20 @@ describe('transformations', () => {
     ])
   })
 })
+
+describe('variable ranges in functions', () => {
+  it('MEAN(a TO b) expands in dataset order', () => {
+    const d = datasetFromColumns(
+      [createVariable('q1'), createVariable('q2'), createVariable('q3'), createVariable('z')],
+      [
+        [1, 2],
+        [3, null],
+        [5, 6],
+        [100, 100],
+      ],
+    )
+    expect(evaluateAll(d, 'MEAN(q1 TO q3)')).toEqual([3, 4])
+    expect(evaluateAll(d, 'SUM(q1 TO q2, z)')).toEqual([104, 102])
+    expect(() => evaluateAll(d, 'MEAN(q3 TO q1)')).toThrow(/first variable/)
+  })
+})

@@ -1,5 +1,5 @@
 import { isMissing, type Dataset, type Variable } from '../core/dataset'
-import { fmtCount, fmtDf, fmtNum, fmtPct, fmtSig, statDecimals } from '../core/format'
+import { fmtCount, fmtDf, fmtNum, fmtPct, fmtPctSign, fmtSig, statDecimals } from '../core/format'
 import { out, type ColumnNode, type OutputItem, type RowNode } from '../core/output'
 import { mean, median, sortedCopy, summarize } from '../stats/basic'
 import { tInv } from '../stats/distributions'
@@ -82,11 +82,11 @@ export function runMeans(ds: Dataset, spec: MeansSpec): OutputItem[] {
           label: f ? `${vlabel(d)} * ${vlabel(f)}` : vlabel(d),
           cells: [
             fmtCount(inc),
-            fmtPct(tot ? (100 * inc) / tot : 0) + '%',
+            fmtPctSign(tot ? (100 * inc) / tot : 0),
             fmtCount(tot - inc),
             fmtPct(tot ? (100 * (tot - inc)) / tot : 0) + '%',
             fmtCount(tot),
-            '100.0%',
+            fmtPctSign(100),
           ],
         }
       }),

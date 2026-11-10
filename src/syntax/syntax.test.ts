@@ -130,7 +130,7 @@ const SPECS: CommandSpec[] = [
 
 /** Statistics keyword lists are sets; compare them order-insensitively. */
 function normalize(spec: CommandSpec): CommandSpec {
-  const c = structuredClone(spec) as Record<string, unknown>
+  const c = structuredClone(spec) as unknown as Record<string, unknown>
   for (const k of ['statistics', 'cells']) if (Array.isArray(c[k])) (c[k] as string[]).sort()
   return c as unknown as CommandSpec
 }

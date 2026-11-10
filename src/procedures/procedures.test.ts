@@ -186,9 +186,9 @@ WEIGHT BY w.
 FREQUENCIES VARIABLES=gender.`,
     )
     expect(errorsIn(r.blocks)).toEqual([])
-    const stats = r.blocks.flatMap((b) => b.items).filter((i) => i.kind === 'table' && i.table.title === 'Statistics')
-    const n1 = rowValues((stats[0] as { table: never }).table, 'N', 'Valid')[0]
-    const n2 = rowValues((stats[1] as { table: never }).table, 'N', 'Valid')[0]
+    const stats = r.blocks.flatMap((b) => b.items).flatMap((i) => (i.kind === 'table' && i.table.title === 'Statistics' ? [i.table] : []))
+    const n1 = rowValues(stats[0], 'N', 'Valid')[0]
+    const n2 = rowValues(stats[1], 'N', 'Valid')[0]
     const females = (ref.data.gender as number[]).filter((g) => g === 2).length
     expect(Number(n1)).toBe(females)
     expect(Number(n2)).toBe(2 * ds.nCases)

@@ -1,5 +1,5 @@
 import { isMissing, type Dataset, type Variable } from '../core/dataset'
-import { fmtCount, fmtNum, fmtPct, fmtSig, statDecimals } from '../core/format'
+import { fmtCount, fmtNum, fmtPctSign, fmtSig, statDecimals } from '../core/format'
 import { out, type BoxSummary, type OutputItem, type RowNode } from '../core/output'
 import { percentileHaverage, rank, sortedCopy, summarize, trimmedMean, tukeyHinges } from '../stats/basic'
 import { tInv } from '../stats/distributions'
@@ -134,8 +134,11 @@ export function runExplore(ds: Dataset, spec: ExploreSpec): OutputItem[] {
   const deps = resolveVars(ds, spec.dependents)
   deps.forEach((v) => requireNumeric(v, 'EXAMINE'))
   const factors = resolveVars(ds, spec.factors)
-  let cases = analysisCases(ds)
-  if (spec.missing === 'listwise') cases = cases.filter((i) => [...deps, ...factors].every((v) => !isMissing(v, ds.data[v.id][i])))
+  // Case Processing Summary counts every case with a valid factor value; with listwise deletion a case
+  // only counts as valid when all dependents and factors are non-missing.
+  const cases = analysisCases(ds)
+  const listwise =
+    spec.missing === 'listwise' ? new Set(cases.filter((i) => [...deps, ...factors].every((v) => !isMissing(v, ds.data[v.id][i])))) : null
   const items: OutputItem[] = [out.title('Explore')]
 
   const analyses: { factor: Variable | null }[] = []
@@ -164,7 +167,7 @@ export function runExplore(ds: Dataset, spec: ExploreSpec): OutputItem[] {
           }
           total++
           const x = ds.data[dep.id][i]
-          if (isMissing(dep, x)) missing++
+          if (isMissing(dep, x) || (listwise && !listwise.has(i))) missing++
           else {
             values.push(x as number)
             caseNos.push(i + 1)
@@ -187,11 +190,11 @@ export function runExplore(ds: Dataset, spec: ExploreSpec): OutputItem[] {
     // Case Processing Summary
     const cpsRow = (c: Cell) => [
       fmtCount(c.values.length),
-      fmtPct(c.total ? (100 * c.values.length) / c.total : 0) + '%',
+      fmtPctSign(c.total ? (100 * c.values.length) / c.total : 0),
       fmtCount(c.missing),
-      fmtPct(c.total ? (100 * c.missing) / c.total : 0) + '%',
+      fmtPctSign(c.total ? (100 * c.missing) / c.total : 0),
       fmtCount(c.total),
-      '100.0%',
+      fmtPctSign(100),
     ]
     const groupRows = (fn: (c: Cell) => RowNode['cells'] | RowNode[]): RowNode[] =>
       deps.map((dep) => {

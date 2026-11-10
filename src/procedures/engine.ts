@@ -314,30 +314,30 @@ export function runSyntax(ds: Dataset, text: string): RunResult {
   const blocks: OutputBlock[] = []
   let errors = 0
   const commands = splitCommands(text)
+  const push = (b: OutputBlock) => {
+    const last = blocks[blocks.length - 1]
+    if (b.title === 'Log' && last && last.title === 'Log') last.items.push(...b.items)
+    else blocks.push(b)
+  }
   for (const raw of commands) {
     let specs: CommandSpec[]
     try {
       const parsed = parseCommand(raw, cur)
       if (parsed.ignored) {
-        blocks.push(block('Log', [out.log(raw.text + '.'), out.text(`Command ignored in the browser: ${raw.text.split(/\s+/)[0]}.`, 'warning', 'Warnings')]))
+        push(block('Log', [out.log(raw.text + '.'), out.text(`Command ignored in the browser: ${raw.text.split(/\s+/)[0]}.`, 'warning', 'Warnings')]))
         continue
       }
       specs = parsed.specs
     } catch (e) {
       errors++
       const msg = e instanceof SyntaxError_ ? `Line ${e.line}: ${e.message}` : (e as Error).message
-      blocks.push(block('Log', [out.log(raw.text + '.'), out.text(msg, 'error', 'Error')]))
+      push(block('Log', [out.log(raw.text + '.'), out.text(msg, 'error', 'Error')]))
       continue
     }
     const r = executeSpecs(cur, specs, raw.text + '.')
     cur = r.dataset
     errors += r.errors
-    // merge consecutive Log blocks
-    for (const b of r.blocks) {
-      const last = blocks[blocks.length - 1]
-      if (b.title === 'Log' && last && last.title === 'Log') last.items.push(...b.items)
-      else blocks.push(b)
-    }
+    for (const b of r.blocks) push(b)
   }
   return { dataset: cur, blocks, errors }
 }

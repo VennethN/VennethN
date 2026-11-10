@@ -209,14 +209,18 @@ export function layoutTable(t: PivotTable): TableLayout {
   const stubCols = Math.max(1, rowDepth(t.rows))
   const valueCols = t.columns.reduce((s, c) => s + colLeaves(c), 0)
   const head: LayoutCell[][] = Array.from({ length: hDepth }, () => [])
-  // corner
-  head[0].push({
-    text: (t.corner ?? []).filter(Boolean).join(' '),
-    rowSpan: hDepth,
-    colSpan: stubCols,
-    kind: 'corner',
-    align: 'left',
-  })
+  // corner: one cell per stub column when labels for each are given, else a merged cell
+  const corner = t.corner ?? []
+  if (corner.length === stubCols && stubCols > 1)
+    corner.forEach((text) => head[0].push({ text, rowSpan: hDepth, colSpan: 1, kind: 'corner', align: 'left' }))
+  else
+    head[0].push({
+      text: corner.filter(Boolean).join(' '),
+      rowSpan: hDepth,
+      colSpan: stubCols,
+      kind: 'corner',
+      align: 'left',
+    })
   const walkCols = (nodes: ColumnNode[], level: number) => {
     for (const n of nodes) {
       const hasKids = !!n.children?.length

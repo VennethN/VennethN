@@ -95,6 +95,7 @@ export type Node =
   | { k: 'var'; name: string }
   | { k: 'sys'; name: string }
   | { k: 'call'; fn: string; min: number | null; args: Node[] }
+  | { k: 'range'; from: string; to: string }
   | { k: 'un'; op: string; a: Node }
   | { k: 'bin'; op: string; a: Node; b: Node }
 
@@ -205,6 +206,12 @@ export function parseExpr(src: string): Node {
           if (takesFormat && args.length === 1 && a.t === 'id' && /^[A-Za-z]+\d+(\.\d+)?$/.test(a.v) && after.t === 'op' && after.v === ')') {
             p++
             return { k: 'str', v: a.v }
+          }
+          // variable ranges such as MEAN(q1 TO q5)
+          if (a.t === 'id' && after.t === 'id' && after.v.toUpperCase() === 'TO' && toks[p + 2]?.t === 'id') {
+            const to = toks[p + 2] as { v: string }
+            p += 3
+            return { k: 'range', from: a.v, to: to.v }
           }
           return or()
         }
@@ -498,6 +505,16 @@ function lookup(ctx: EvalCtx, name: string): Variable {
   return v
 }
 
+/** Variables from `from` to `to` in dataset order. */
+function expandRange(n: { from: string; to: string }, ctx: EvalCtx): string[] {
+  const vs = ctx.ds.variables
+  const a = vs.findIndex((v) => v.name.toLowerCase() === n.from.toLowerCase())
+  const b = vs.findIndex((v) => v.name.toLowerCase() === n.to.toLowerCase())
+  if (a < 0 || b < 0) throw new ExprError(`Variable ${a < 0 ? n.from : n.to} in a TO range does not exist.`)
+  if (b < a) throw new ExprError(`In "${n.from} TO ${n.to}" the first variable must come before the second.`)
+  return vs.slice(a, b + 1).map((v) => v.name)
+}
+
 function truth(v: Val): boolean | null {
   if (v === null) return null
   if (typeof v === 'string') return v.trim() !== ''
@@ -548,9 +565,11 @@ export function evalNode(n: Node, ctx: EvalCtx): Val {
     case 'call': {
       const fn = FUNCS[n.fn]
       const lazy = n.fn === 'MISSING' || n.fn === 'SYSMIS' || n.fn === 'VALUE'
-      const args = lazy ? [] : n.args.map((a) => evalNode(a, ctx))
+      const args = lazy ? [] : n.args.flatMap((a) => (a.k === 'range' ? expandRange(a, ctx).map((v) => evalNode({ k: 'var', name: v }, ctx)) : [evalNode(a, ctx)]))
       return fn(args, ctx, n.args, n.min)
     }
+    case 'range':
+      throw new ExprError('A TO range can only be used inside a function argument list.')
     case 'un': {
       const a = evalNode(n.a, ctx)
       if (n.op === '-') {
@@ -605,6 +624,10 @@ export function evalNode(n: Node, ctx: EvalCtx): Val {
 /** Names of variables referenced by an expression. */
 export function referencedVars(n: Node, out = new Set<string>()): Set<string> {
   if (n.k === 'var') out.add(n.name.toLowerCase())
+  else if (n.k === 'range') {
+    out.add(n.from.toLowerCase())
+    out.add(n.to.toLowerCase())
+  }
   else if (n.k === 'call') n.args.forEach((a) => referencedVars(a, out))
   else if (n.k === 'un') referencedVars(n.a, out)
   else if (n.k === 'bin') {
